@@ -10,32 +10,38 @@ import (
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/speaker"
 	"github.com/faiface/beep/wav"
-	"github.com/nextzlog/zylo"
 	"os"
 	"strings"
 	"time"
 )
 
 var (
-	calls   [100]string
+	calls   [1000]string
 	nowcall string
 	callall int
 	answer  bool
 )
 
 //go:embed cwtrainer.dat
-var cwtrainer_list string
+var cityMultiList string
 
-func zcities() string {
-	return cwtrainer_list
+func init() {
+	CityMultiList = cityMultiList
+	OnLaunchEvent = onLaunchEvent
+	OnFinishEvent = onFinishEvent
+	OnAttachEvent = onAttachEvent
+	OnInsertEvent = onInsertEvent
+	OnVerifyEvent = onVerifyEvent
+	OnPointsEvent = onPointsEvent
 }
 
-func zlaunch() {
-	zylo.Notify("CQ!")
+
+func onLaunchEvent() {
+	DisplayToast("CQ!")
 }
 
-func zfinish() {
-	zylo.Notify("Bye")
+func onFinishEvent() {
+	DisplayToast("Bye")
 }
 
 func readtext() {
@@ -43,7 +49,7 @@ func readtext() {
 	p, _ := os.Getwd()
 	fp, err := os.Open(p + "\\wavfiles\\callsigns.txt")
 	if err != nil {
-		zylo.Notify("panic")
+		DisplayToast("not find textfile")
 	}
 	defer fp.Close()
 
@@ -62,7 +68,7 @@ func sound() {
 	p, _ := os.Getwd()
 	f, err := os.Open(p + "\\wavfiles\\" + nowcall + ".wav")
 	if err != nil {
-		zylo.Notify("panic")
+		DisplayToast("not find wavfile")
 	}
 	st, format, _ := wav.Decode(f)
 	defer st.Close()
@@ -91,25 +97,20 @@ func checkcw() {
 			}
 		}
 	}
-	zylo.Notify("finish")
+	DisplayToast("finish")
 }
 
-func zattach(test string, path string) {
+func onAttachEvent(test string, path string) {
 	readtext()
 	go checkcw()
 }
 
-func zdetach() {
-}
 
-func zinsert(qso *zylo.QSO) {
+func onInsertEvent(qso *QSO) {
 	answer = true
 }
 
-func zdelete(qso *zylo.QSO) {
-}
-
-func zverify(qso *zylo.QSO) {
+func onVerifyEvent(qso *QSO)  {
 	gscall := qso.GetCall()
 	if gscall == nowcall {
 		qso.Score = 1
@@ -122,16 +123,6 @@ func zverify(qso *zylo.QSO) {
 	}
 }
 
-func zpoints(score, mults int) int {
+func onPointsEvent(score, mults int)int {
 	return score
 }
-
-func zeditor(key int, name string) bool {
-	return false
-}
-
-func zbutton(btn int, name string) bool {
-	return false
-}
-
-func main() {}
